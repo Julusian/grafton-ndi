@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Model UYVA, P216 and PA16 with the SDK's plane layouts. The line stride is the
+  first-plane stride (`width * 2`), so frames the SDK delivers in these formats
+  are no longer rejected, and builder frames no longer hand the SDK a stride of
+  `width * 3` or `width * 4`. UYVA is a UYVY plane followed by an 8-bit alpha
+  plane at half the line stride; P216 is a 16-bit Y plane followed by an
+  interleaved CbCr plane; PA16 adds a 16-bit alpha plane. Their
+  `PixelFormatInfo` now reports 2 bytes per pixel and the new
+  `FormatCategory::PackedAlpha`, `SemiPlanar422` and `SemiPlanar422Alpha`
+  categories.
+
 ## [1.0.1] - 2026-10-14
 
 ### Fixed
