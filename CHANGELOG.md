@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `BorrowedVideoFrame::with_timecode` and
+  `BorrowedVideoFrame::with_picture_aspect_ratio`, so a validated borrowed frame
+  can carry its own timecode and aspect ratio without `from_parts_unchecked`.
+
 ### Fixed
 
 - Model UYVA, P216 and PA16 with the SDK's plane layouts. The line stride is the
