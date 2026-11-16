@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `BorrowedVideoFrame::with_timecode` and
   `BorrowedVideoFrame::with_picture_aspect_ratio`, so a validated borrowed frame
   can carry its own timecode and aspect ratio without `from_parts_unchecked`.
+- `BorrowedVideoFrame::with_metadata`, so a validated borrowed frame can carry
+  per-frame metadata (such as NDI 6's `<ndi_color_info/>`) without
+  `from_parts_unchecked`.
 
 ### Fixed
 

@@ -439,6 +439,19 @@ impl<'buf> BorrowedVideoFrame<'buf> {
         Ok(self)
     }
 
+    /// Attach per-frame metadata, which NDI carries as XML: what the frame
+    /// is, such as NDI 6's `<ndi_color_info/>`. It must outlive the frame.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidUtf8`] if `metadata` is not UTF-8, or
+    /// [`Error::InvalidFrame`] if it exceeds the metadata size cap.
+    pub fn with_metadata(mut self, metadata: &'buf CStr) -> Result<Self> {
+        crate::frames::validate_metadata_cstr(metadata)?;
+        self.metadata = Some(metadata);
+        Ok(self)
+    }
+
     fn to_raw(&self) -> NDIlib_video_frame_v2_t {
         // Validation is now performed at construction time, so no runtime checks needed here
         NDIlib_video_frame_v2_t {
@@ -1240,6 +1253,28 @@ mod tests {
             .unwrap();
             assert!(frame.with_picture_aspect_ratio(bad).is_err(), "{bad}");
         }
+    }
+
+    #[test]
+    fn test_borrowed_frame_metadata() {
+        let buffer = vec![0u8; 64 * 36 * 2];
+        let frame = || {
+            BorrowedVideoFrame::try_from_uncompressed(&buffer, 64, 36, PixelFormat::UYVY, 25, 1)
+                .unwrap()
+        };
+        assert_eq!(frame().metadata(), None);
+        assert!(frame().to_raw().p_metadata.is_null());
+
+        let xml = c"<ndi_color_info transfer=\"bt_2100_pq\"/>";
+        let with = frame().with_metadata(xml).unwrap();
+        assert_eq!(
+            with.metadata(),
+            Some("<ndi_color_info transfer=\"bt_2100_pq\"/>")
+        );
+        assert_eq!(with.to_raw().p_metadata, xml.as_ptr());
+
+        let not_utf8 = CString::new(vec![0xff, 0xfe]).unwrap();
+        assert!(frame().with_metadata(&not_utf8).is_err());
     }
 
     #[test]

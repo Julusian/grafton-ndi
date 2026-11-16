@@ -1642,6 +1642,16 @@ fn validate_metadata_text(data: &str) -> Result<()> {
     Ok(())
 }
 
+/// Validate metadata a caller hands over as a C string: UTF-8, within the
+/// size cap.
+pub(crate) fn validate_metadata_cstr(metadata: &CStr) -> Result<()> {
+    metadata
+        .to_str()
+        .map_err(|err| Error::InvalidUtf8(err.to_string()))?;
+    validate_metadata_len_with_nul(metadata.to_bytes_with_nul().len())?;
+    Ok(())
+}
+
 fn validate_metadata_len_with_nul(len_with_nul: usize) -> Result<i32> {
     if len_with_nul == 0 {
         return Err(Error::InvalidFrame(
