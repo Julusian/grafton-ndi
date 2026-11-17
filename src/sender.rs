@@ -534,6 +534,24 @@ impl Sender {
         self.inner.notify(len);
     }
 
+    /// Send a borrowed video frame synchronously, without copying it.
+    ///
+    /// As [`Self::send_video`], for pixels the caller owns: memory that cannot
+    /// be a `Vec`, such as a page-aligned buffer a GPU writes. The SDK has
+    /// released the buffer when this returns; the caller may then reuse or
+    /// release it. This also completes a previous async video send.
+    pub fn send_video_borrowed(&self, video_frame: &BorrowedVideoFrame<'_>) {
+        let len = {
+            let mut video = self.inner.video.lock().unwrap_or_else(|e| e.into_inner());
+            // A synchronous video send also releases the previous async frame.
+            unsafe {
+                NDIlib_send_send_video_v2(self.inner.instance, &video_frame.to_raw());
+            }
+            video.completed()
+        };
+        self.inner.notify(len);
+    }
+
     /// Submit an owned frame without copying its pixel or metadata allocations.
     ///
     /// The sender takes ownership before calling the SDK. The next async send
